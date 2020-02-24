@@ -369,3 +369,20 @@ ___
 ## Help us
 
 Any thought, feedback or (hopefully not!)
+
+
+___
+
+## Makefile
+
+
+Special parameters
+* $0  : script name
+* $*  : all arguments, only one argument
+* $@  : all argument, one argument by parameters
+* $#  : number of arguments
+* $?  : returned code by last commmand
+* $$  : PID script executed
+* $!  : PID las script executed
+
+source : https://medium.com/lebouchondigital/passer-des-arguments-%C3%A0-une-target-gnu-make-1ddab618c32f

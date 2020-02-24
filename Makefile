@@ -5,6 +5,13 @@ include .env
 # MySQL
 MYSQL_DUMPS_DIR=data/db/dumps
 
+SUPPORTED_COMMANDS := composer phpcs phpcbf
+SUPPORTS_MAKE_ARGS := $(findstring $(firstword $(MAKECMDGOALS)), $(SUPPORTED_COMMANDS))
+ifneq "$(SUPPORTS_MAKE_ARGS)" ""
+  COMMAND_ARGS := $(wordlist 2,$(words $(MAKECMDGOALS)),$(MAKECMDGOALS))
+  $(eval $(COMMAND_ARGS):;@:)
+endif
+
 help:
 	@echo ""
 	@echo "usage: make COMMAND"
@@ -81,3 +88,24 @@ resetOwner:
 	@$(shell chown -Rf $(SUDO_USER):$(shell id -g -n $(SUDO_USER)) $(MYSQL_DUMPS_DIR) "$(shell pwd)/etc/ssl" "$(shell pwd)/web/app" 2> /dev/null)
 
 .PHONY: clean test code-sniff init
+
+phpcs:
+	@echo "Checking the standard code"
+	@echo "phpcs -v --colors --error-severity=1 --standard=app/vendor/escapestudios/symfony2-coding-standard/Symfony app/src/${COMMAND_ARGS}"
+	@echo "...."
+#	@docker-compose exec -T php ./app/vendor/bin/phpcs -v --standard=PSR2 app/src/${args}
+	@docker-compose exec -T php ./app/vendor/bin/phpcs -v --colors --error-severity=1 --standard=app/vendor/escapestudios/symfony2-coding-standard/Symfony app/src/${COMMAND_ARGS}
+
+phpcbf:
+	@echo "Fixing sniff violations defined by the standard code"
+	@echo "phpcbf -v --colors --error-severity=1 --standard=app/vendor/escapestudios/symfony2-coding-standard/Symfony app/src/${COMMAND_ARGS}"
+	@echo "...."
+#	@docker-compose exec -T php ./app/vendor/bin/phpcbf -v --standard=PSR2 app/src/${args}
+	@docker-compose exec -T php ./app/vendor/bin/phpcbf -v --colors --error-severity=1 --standard=app/vendor/escapestudios/symfony2-coding-standard/Symfony app/src/${COMMAND_ARGS}
+
+composer:
+	@echo "composer ${COMMAND_ARGS}"
+	@echo "...."
+#	@docker run --rm -v $(shell pwd)/web/app:/app composer require --dev escapestudios/symfony2-coding-standard
+#	@docker run --rm -v $(shell pwd)/web/app:/app composer $(filter-out $@,$(MAKECMDGOALS))
+	@docker run --rm -v $(shell pwd)/web/app:/app composer ${COMMAND_ARGS}
